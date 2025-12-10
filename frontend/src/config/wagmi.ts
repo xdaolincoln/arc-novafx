@@ -6,13 +6,25 @@ export const arcTestnet = defineChain({
   id: 5042002,
   name: 'Arc Testnet',
   nativeCurrency: {
-    decimals: 6,
-    name: 'USDC',
-    symbol: 'USDC',
+  // Lưu ý: MetaMask/OKX yêu cầu decimals = 18 trong nativeCurrency để chấp nhận network,
+  // dù token gas thực tế (USDC) có 6 decimals trên on-chain.
+  // ERC20 USDC/EURC vẫn dùng 6 decimals trong contract, chỉ riêng field này phải set 18.
+  decimals: 18,
+  name: 'USDC',
+  symbol: 'USDC',
   },
   rpcUrls: {
     default: {
       http: ['https://rpc.testnet.arc.network'],
+    },
+    public: {
+      http: ['https://rpc.testnet.arc.network'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Arc Explorer',
+      url: 'https://explorer.testnet.arc.network',
     },
   },
 });

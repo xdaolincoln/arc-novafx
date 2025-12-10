@@ -31,7 +31,7 @@ export default function RootLayout({
       <body>
         <WagmiProvider config={wagmiConfig}>
           <QueryClientProvider client={queryClient}>
-            <RainbowKitProvider>
+            <RainbowKitProvider locale="en">
               {children}
               <Toaster position="top-right" />
             </RainbowKitProvider>
