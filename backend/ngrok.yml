@@ -1,0 +1,9 @@
+version: "2"
+tunnels:
+  stablepay-backend:
+    addr: 3000
+    proto: http
+  arc-backend:
+    addr: 3002
+    proto: http
+
