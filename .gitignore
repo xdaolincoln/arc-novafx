@@ -42,3 +42,6 @@ typechain/
 coverage/
 .nyc_output/
 
+# Ngrok config (contains sensitive authtoken)
+backend/ngrok.yml
+
