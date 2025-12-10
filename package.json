@@ -1,0 +1,22 @@
+{
+  "name": "arc-fx-app",
+  "version": "1.0.0",
+  "description": "FX App với RFQ Model trên Arc Network",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:contracts": "cd contracts && npm run build",
+    "test:contracts": "cd contracts && npm test",
+    "deploy:contracts": "cd contracts && npm run deploy"
+  },
+  "keywords": [
+    "arc",
+    "fx",
+    "defi",
+    "stablecoin"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+

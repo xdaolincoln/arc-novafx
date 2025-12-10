@@ -1,0 +1,21 @@
+{
+  "name": "arc-fx-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts cho FX app trên Arc",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test --network arc-testnet",
+    "test:local": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.ts --network arc-testnet",
+    "node": "hardhat node"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "dotenv": "^16.6.1",
+    "hardhat": "^2.19.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0"
+  }
+}
