@@ -48,6 +48,7 @@ export default function RFQPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loadingQuotes, setLoadingQuotes] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [isSettlingFromBackend, setIsSettlingFromBackend] = useState(false);
   const [showQuotesModal, setShowQuotesModal] = useState(false);
   const [isFundInitiated, setIsFundInitiated] = useState(false); // Track if user clicked Fund button
   const [acceptedTrade, setAcceptedTrade] = useState<{
@@ -453,47 +454,8 @@ export default function RFQPage() {
     }
   }, [fundHash, isWaitingFund]);
 
-  // Update trade status after settle
-  useEffect(() => {
-    if (settleHash && !isWaitingSettle && acceptedTrade && acceptedTrade.status !== 'Settled') {
-      try {
-        const explorerUrl = `${EXPLORER_BASE_URL}/tx/${settleHash}`;
-        toast.success(
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <span>Trade settled successfully!</span>
-            <a
-              href={explorerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: '#00D4AA',
-                textDecoration: 'underline',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-              }}
-            >
-              View Explorer!
-            </a>
-          </div>,
-          { duration: 8000 }
-        );
-      } catch (error) {
-        console.error('❌ Error calling toast.success:', error);
-      }
-      setAcceptedTrade(prev =>
-        prev
-          ? {
-              ...prev,
-              status: 'Settled',
-            }
-          : prev
-      );
-      setTimeout(() => {
-        setAcceptedTrade(null);
-        setShowQuotesModal(false);
-      }, 2000); // Đóng modal sau 2 giây
-    }
-  }, [settleHash, isWaitingSettle, acceptedTrade]);
+  // Note: Settle logic is now handled directly in handleSettle function
+  // Backend handles settlement using its private key, no user signature needed
 
   // Real-time countdown update for settlement time
   useEffect(() => {
@@ -532,43 +494,56 @@ export default function RFQPage() {
       return;
     }
 
+    setIsSettlingFromBackend(true);
     try {
-      // Gọi backend API để settle
+      // Gọi backend API để settle (backend sẽ dùng private key để sign transaction)
+      // KHÔNG CẦN USER KÝ VÍ - backend tự động handle
       const data = await apiFetchJson(`${BACKEND_URL}/api/settlement/trade/${acceptedTrade.id}/settle`, {
         method: 'POST',
       });
       
       if (data.success) {
-        // console.log('🧪 Calling toast.success for settle (API)...');
         try {
-          toast.success(`Trade settled successfully! TX: ${data.txHash?.slice(0, 10) || 'pending'}...`);
-          // console.log('✅ toast.success called successfully');
+          const explorerUrl = data.txHash
+            ? `${EXPLORER_BASE_URL}/tx/${data.txHash}`
+            : undefined;
+          toast.success(
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <span>
+                Trade settled successfully! TX:{' '}
+                {data.txHash?.slice(0, 10) || 'pending'}...
+              </span>
+              {explorerUrl && (
+                <a
+                  href={explorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: '#00D4AA',
+                    textDecoration: 'underline',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                  }}
+                >
+                  View Explorer!
+                </a>
+              )}
+            </div>,
+            { duration: 8000 }
+          );
         } catch (error) {
           console.error('❌ Error calling toast.success:', error);
         }
-        // Status sẽ được cập nhật qua useEffect khi settleHash có
+        // Update trade status to Settled
+        setAcceptedTrade(prev => prev ? { ...prev, status: 'Settled' } : null);
       } else {
-        // Fallback: gọi trực tiếp smart contract
-        const tradeId = BigInt(acceptedTrade.id.replace('trade_', ''));
-        const SETTLEMENT_ABI = SettlementContract.abi;
-        settleTrade({
-          address: SETTLEMENT_CONTRACT_ADDRESS as `0x${string}`,
-          abi: SETTLEMENT_ABI,
-          functionName: 'settle',
-          args: [tradeId],
-        });
+        toast.error(`Error: ${data.error || 'Failed to settle trade'}`);
       }
     } catch (error: any) {
       console.error('Error settling trade:', error);
-      // Fallback: gọi trực tiếp smart contract
-      const tradeId = BigInt(acceptedTrade.id.replace('trade_', ''));
-      const SETTLEMENT_ABI = SettlementContract.abi;
-      settleTrade({
-        address: SETTLEMENT_CONTRACT_ADDRESS as `0x${string}`,
-        abi: SETTLEMENT_ABI,
-        functionName: 'settle',
-        args: [tradeId],
-      });
+      toast.error(`Error: ${error.message || 'Failed to settle trade. Please try again.'}`);
+    } finally {
+      setIsSettlingFromBackend(false);
     }
   };
 
@@ -1007,7 +982,7 @@ export default function RFQPage() {
                       padding: '0.875rem 1.25rem',
                       border: 'none',
                       borderRadius: '8px',
-                      background: (isSettlementTimeReached(acceptedTrade.settlementTime) && !isSettling && !isWaitingSettle)
+                      background: (isSettlementTimeReached(acceptedTrade.settlementTime) && !isSettlingFromBackend)
                         ? ACTIVE_BUTTON_COLOR
                         : INACTIVE_BUTTON_COLOR,
                       color: '#FFFFFF',
@@ -1019,17 +994,17 @@ export default function RFQPage() {
                       transition: 'all 0.2s ease',
                     }}
                     onMouseEnter={(e) => {
-                      if (isSettlementTimeReached(acceptedTrade.settlementTime) && !isSettling && !isWaitingSettle) {
+                      if (isSettlementTimeReached(acceptedTrade.settlementTime) && !isSettlingFromBackend) {
                         e.currentTarget.style.opacity = '0.9';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (isSettlementTimeReached(acceptedTrade.settlementTime) && !isSettling && !isWaitingSettle) {
+                      if (isSettlementTimeReached(acceptedTrade.settlementTime) && !isSettlingFromBackend) {
                         e.currentTarget.style.opacity = '1';
                       }
                     }}
                   >
-                    {isSettling || isWaitingSettle ? 'Settling...' : isSettlementTimeReached(acceptedTrade.settlementTime) ? 'Settle' : `Wait ${getTimeUntilSettlement(acceptedTrade.settlementTime)}`}
+                    {isSettlingFromBackend ? 'Settling...' : isSettlementTimeReached(acceptedTrade.settlementTime) ? 'Settle' : `Wait ${getTimeUntilSettlement(acceptedTrade.settlementTime)}`}
                   </button>
                 ) : acceptedTrade.status === 'Settled' ? (
                   <div
