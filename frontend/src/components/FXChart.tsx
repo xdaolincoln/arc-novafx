@@ -9,6 +9,7 @@ import {
   Time,
 } from 'lightweight-charts';
 import { BACKEND_URL } from '@/config/wagmi';
+import { apiFetchJson } from '@/utils/api';
 
 type Timeframe = '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
 
@@ -38,10 +39,9 @@ export default function FXChart({ data, timeframe = '1h', currentRate }: FXChart
     const fetchCandles = async () => {
       setLoading(true);
       try {
-        const res = await fetch(
+        const json = await apiFetchJson(
           `${BACKEND_URL}/api/candles/USDC-EURC?tf=${timeframe}&limit=200`,
         );
-        const json = await res.json();
 
         let candles: CandlestickData<Time>[] = [];
 

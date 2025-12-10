@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { BACKEND_URL } from '@/config/wagmi';
 import { toast } from 'react-hot-toast';
+import { apiFetchJson, apiFetch } from '@/utils/api';
 
 interface Quote {
   id: string;
@@ -28,8 +29,7 @@ export default function QuoteList() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/quotes/${rfqId}`);
-      const data = await response.json();
+      const data = await apiFetchJson(`${BACKEND_URL}/api/quotes/${rfqId}`);
       
       if (data.success) {
         setQuotes(data.quotes || []);
@@ -53,16 +53,13 @@ export default function QuoteList() {
     }
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/quotes/${rfqId}/accept`, {
+      const data = await apiFetchJson(`${BACKEND_URL}/api/quotes/${rfqId}/accept`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           quoteId,
           takerAddress: address,
         }),
       });
-
-      const data = await response.json();
       
       if (data.success) {
         toast.success(`Trade created: ${data.trade?.id}. You can now fund the trade in "My Trades" section.`);

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { BACKEND_URL } from '@/config/wagmi';
 import { toast } from 'react-hot-toast';
+import { apiFetchJson } from '@/utils/api';
 
 export default function RFQForm() {
   const { address } = useAccount();
@@ -29,9 +30,8 @@ export default function RFQForm() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/rfq`, {
+      const data = await apiFetchJson(`${BACKEND_URL}/api/rfq`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from: { currency: fromCurrency, amount },
           to: { currency: toCurrency },
@@ -39,8 +39,6 @@ export default function RFQForm() {
           takerAddress: address,
         }),
       });
-
-      const data = await response.json();
       
       if (data.success) {
         setRfqId(data.rfqId);

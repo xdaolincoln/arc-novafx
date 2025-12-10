@@ -7,6 +7,7 @@ import TradeList from '@/components/TradeList';
 import FXChart from '@/components/FXChart';
 import { BACKEND_URL } from '@/config/wagmi';
 import { toast } from 'react-hot-toast';
+import { apiFetchJson } from '@/utils/api';
 
 type Timeframe = '5m' | '15m' | '30m' | '1h' | '4h' | '1d';
 
@@ -21,8 +22,7 @@ export default function Home() {
   const fetchCurrentRate = async () => {
     try {
       setRateLoading(true);
-      const response = await fetch(`${BACKEND_URL}/api/price/USDC/EURC`);
-      const data = await response.json();
+      const data = await apiFetchJson(`${BACKEND_URL}/api/price/USDC/EURC`);
       
       if (data.success) {
         setCurrentRate(data.rate);

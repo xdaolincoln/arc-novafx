@@ -6,6 +6,7 @@ import { parseUnits, keccak256, toHex } from 'viem';
 import { BACKEND_URL, SETTLEMENT_CONTRACT_ADDRESS, USDC_ADDRESS, EURC_ADDRESS } from '@/config/wagmi';
 import SettlementContract from '@/abi/Settlement.json';
 import { toast } from 'react-hot-toast';
+import { apiFetchJson, apiFetch } from '@/utils/api';
 
 // Màu xanh nhạt thống nhất cho tất cả nút khi inactive
 const INACTIVE_BUTTON_COLOR = 'rgba(0, 212, 170, 0.3)';
@@ -65,8 +66,7 @@ export default function RFQPage() {
 
     setLoadingQuotes(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/quotes/${rfqId}`);
-      const data = await response.json();
+      const data = await apiFetchJson(`${BACKEND_URL}/api/quotes/${rfqId}`);
       
       if (data.success) {
         setQuotes(data.quotes || []);
@@ -142,9 +142,8 @@ export default function RFQPage() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/rfq`, {
+      const data = await apiFetchJson(`${BACKEND_URL}/api/rfq`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from: { currency: fromCurrency, amount },
           to: { currency: toCurrency },
@@ -152,8 +151,6 @@ export default function RFQPage() {
           takerAddress: address,
         }),
       });
-
-      const data = await response.json();
       
       if (data.success) {
         const newRfqId = data.rfqId;
@@ -167,8 +164,7 @@ export default function RFQPage() {
         // Use setTimeout to ensure state is set
         setTimeout(async () => {
           try {
-            const response = await fetch(`${BACKEND_URL}/api/quotes/${newRfqId}`);
-            const data = await response.json();
+            const data = await apiFetchJson(`${BACKEND_URL}/api/quotes/${newRfqId}`);
             if (data.success) {
               setQuotes(data.quotes || []);
             } else {
@@ -219,8 +215,7 @@ export default function RFQPage() {
       // Option 1: Frontend tính settlementTime và gửi lên backend
       // Fetch RFQ để lấy tenor
       // console.log('🔍 Fetching RFQ details...', rfqId);
-      const rfqResponse = await fetch(`${BACKEND_URL}/api/rfq/${rfqId}`);
-      const rfqData = await rfqResponse.json();
+      const rfqData = await apiFetchJson(`${BACKEND_URL}/api/rfq/${rfqId}`);
       if (!rfqData.success || !rfqData.rfq) {
         throw new Error('Failed to fetch RFQ details');
       }
@@ -286,9 +281,8 @@ export default function RFQPage() {
 
       // Send to backend with taker signature AND settlementTime
       // Backend sẽ dùng settlementTime này để sign maker signature (đảm bảo giống nhau)
-      const response = await fetch(`${BACKEND_URL}/api/quotes/${rfqId}/accept`, {
+      const data = await apiFetchJson(`${BACKEND_URL}/api/quotes/${rfqId}/accept`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           quoteId,
           takerAddress: address,
@@ -296,8 +290,6 @@ export default function RFQPage() {
           settlementTime, // Send settlementTime to backend to ensure both use same value
         }),
       });
-
-      const data = await response.json();
       
       if (data.success) {
         // Lưu trade info và chuyển modal sang "Fund Trade"
@@ -542,12 +534,9 @@ export default function RFQPage() {
 
     try {
       // Gọi backend API để settle
-      const response = await fetch(`${BACKEND_URL}/api/settlement/trade/${acceptedTrade.id}/settle`, {
+      const data = await apiFetchJson(`${BACKEND_URL}/api/settlement/trade/${acceptedTrade.id}/settle`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
       });
-
-      const data = await response.json();
       
       if (data.success) {
         // console.log('🧪 Calling toast.success for settle (API)...');

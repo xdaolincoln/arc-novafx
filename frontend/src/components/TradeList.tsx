@@ -7,6 +7,7 @@ import { BACKEND_URL, USDC_ADDRESS, EURC_ADDRESS } from '@/config/wagmi';
 import TradeStatus from './TradeStatus';
 import SettlementContract from '@/abi/Settlement.json';
 import { toast } from 'react-hot-toast';
+import { apiFetchJson } from '@/utils/api';
 
 const SETTLEMENT_CONTRACT_ADDRESS = SettlementContract.address as `0x${string}`;
 const SETTLEMENT_ABI = SettlementContract.abi;
@@ -106,8 +107,7 @@ export default function TradeList({
 
     setLoading(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/settlement/trades?userAddress=${address}`);
-      const data = await response.json();
+      const data = await apiFetchJson(`${BACKEND_URL}/api/settlement/trades?userAddress=${address}`);
       
       if (data.success) {
         setTrades(data.trades || []);
@@ -265,12 +265,9 @@ export default function TradeList({
     try {
       setCurrentSettlingTrade(trade.id);
       // Option 1: Gọi backend API (recommended - backend kiểm tra settlement time)
-      const response = await fetch(`${BACKEND_URL}/api/settlement/trade/${trade.id}/settle`, {
+      const data = await apiFetchJson(`${BACKEND_URL}/api/settlement/trade/${trade.id}/settle`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
       });
-
-      const data = await response.json();
       
       if (data.success) {
         try {
