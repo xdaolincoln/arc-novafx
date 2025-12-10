@@ -59,7 +59,7 @@ export default function Home() {
           style={{
             maxWidth: '80%',
             margin: '0 auto',
-            padding: '1.5rem 1rem',
+            padding: '0.75rem 1rem',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -86,12 +86,12 @@ export default function Home() {
               <img
                 src="/nova.svg"
                 alt="NovaFX logo"
-                style={{ width: '32px', height: '32px' }}
+                style={{ width: '48px', height: '48px' }}
               />
               <h1
                 style={{
                   fontFamily: "'Oxanium', sans-serif",
-                  fontSize: '1.5rem',
+                  fontSize: '2rem',
                   fontWeight: 700,
                   color: '#FFFFFF',
                   letterSpacing: '-0.01em',
@@ -178,7 +178,7 @@ export default function Home() {
                         letterSpacing: '-0.02em',
                       }}
                     >
-                      {currentRate.toFixed(4)}
+                      {currentRate.toFixed(5)}
                     </span>
                   )}
                   {rateLoading && (

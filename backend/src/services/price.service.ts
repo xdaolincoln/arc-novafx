@@ -17,6 +17,8 @@ interface PriceCache {
 const COIN_IDS: Record<string, string> = {
   USDC: 'usd-coin',
   EURC: 'euro-coin',
+  USD: 'usd', // For forex rates
+  EUR: 'eur', // For forex rates
 };
 
 // Cache tỉ giá trong 60 giây
@@ -43,6 +45,39 @@ export async function getExchangeRate(
   }
 
   try {
+    // Handle EUR/USD forex pair using exchangerate-api
+    if ((fromCurrency === 'EUR' && toCurrency === 'USD') || (fromCurrency === 'USD' && toCurrency === 'EUR')) {
+      const apiKey = process.env.EXCHANGERATE_API_KEY || 'free';
+      const apiUrl = apiKey === 'free' 
+        ? 'https://api.exchangerate-api.com/v4/latest/EUR'
+        : `https://v6.exchangerate-api.com/v6/${apiKey}/latest/EUR`;
+      
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`ExchangeRate API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const eurToUsd = data.rates?.USD || data.rates?.usd;
+      
+      if (!eurToUsd) {
+        throw new Error('EUR/USD rate not available');
+      }
+      
+      // Return EUR/USD or USD/EUR rate
+      const rate = fromCurrency === 'EUR' ? eurToUsd : 1 / eurToUsd;
+      
+      // Cache the rate
+      priceCache.set(cacheKey, {
+        rate,
+        timestamp: Date.now(),
+      });
+      
+      console.log(`📊 Fetched EUR/USD rate: ${fromCurrency} → ${toCurrency} = ${rate}`);
+      return rate;
+    }
+
     const fromCoinId = COIN_IDS[fromCurrency];
     const toCoinId = COIN_IDS[toCurrency];
 

@@ -138,6 +138,10 @@ export default function FXChart({ data, timeframe = '1h', currentRate }: FXChart
       },
       rightPriceScale: {
         borderColor: '#1a2e35',
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.1,
+        },
       },
       timeScale: {
         borderColor: '#1a2e35',
@@ -157,6 +161,11 @@ export default function FXChart({ data, timeframe = '1h', currentRate }: FXChart
         borderVisible: false,
         wickUpColor: '#00D4AA',
         wickDownColor: '#ff4444',
+        priceFormat: {
+          type: 'price',
+          precision: 5,
+          minMove: 0.00001,
+        },
       }) as ISeriesApi<'Candlestick', Time>;
     } catch {
       candleSeries = (chart as any).addCandlestickSeries({
@@ -165,6 +174,11 @@ export default function FXChart({ data, timeframe = '1h', currentRate }: FXChart
         borderVisible: false,
         wickUpColor: '#00D4AA',
         wickDownColor: '#ff4444',
+        priceFormat: {
+          type: 'price',
+          precision: 5,
+          minMove: 0.00001,
+        },
       }) as ISeriesApi<'Candlestick', Time>;
     }
 
